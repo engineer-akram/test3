@@ -49,10 +49,6 @@
             sendData("search");
         });
 
-        document.getElementById("name").addEventListener("input", function() {
-            fetchNames();
-        });
-
         function fetchNames() {
             fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=getNames")
                 .then(response => response.json())
@@ -67,6 +63,10 @@
                 })
                 .catch(error => console.error("Error fetching names:", error));
         }
+
+        document.getElementById("name").addEventListener("input", function() {
+            fetchNames();
+        });
 
         function sendData(action) {
             let formData = new FormData(document.getElementById("dataForm"));
@@ -87,9 +87,6 @@
                     document.getElementById("name").value = data.result.name;
                     document.getElementById("age").value = data.result.age;
                     document.getElementById("address").value = data.result.address;
-                }
-                if (action === "delete" || action === "update" || action === "add") {
-                    document.getElementById("dataForm").reset();
                 }
             })
             .catch(error => {
