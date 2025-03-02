@@ -10,67 +10,91 @@
     <main class="container">
         <h2>Submit Your Details</h2>
         <form id="dataForm">
-            <label for="id">ID (For Update/Delete Only):</label>
-            <input type="number" id="id" name="id" placeholder="Enter ID for update/delete">
-
+            <label for="id">ID:</label>
+            <input type="text" id="id" name="id" placeholder="Enter ID (or search by name)">
+            
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
-
+            <input type="text" id="name" name="name" placeholder="Enter Name" required list="nameSuggestions">
+            <datalist id="nameSuggestions"></datalist>
+            
             <label for="age">Age:</label>
             <input type="number" id="age" name="age" required>
-
+            
             <label for="address">Address:</label>
             <input type="text" id="address" name="address" required>
-
-            <button type="button" onclick="submitData('add')">Add Data</button>
-            <button type="button" onclick="submitData('update')">Update Data</button>
-            <button type="button" onclick="submitData('delete')">Delete Data</button>
+            
+            <button type="submit">Add</button>
+            <button type="button" id="updateBtn">Update</button>
+            <button type="button" id="deleteBtn">Delete</button>
+            <button type="button" id="searchBtn">Search</button>
         </form>
         <p id="status"></p>
     </main>
     
     <script>
-        // Function to handle Enter key navigation
-        document.addEventListener("DOMContentLoaded", function() {
-            const inputs = document.querySelectorAll("#dataForm input");
-
-            inputs.forEach((input, index) => {
-                input.addEventListener("keydown", function(event) {
-                    if (event.key === "Enter") {
-                        event.preventDefault(); // Prevent form submission
-
-                        let nextInput = inputs[index + 1];
-                        if (nextInput) {
-                            nextInput.focus(); // Move focus to the next field
-                        }
-                    }
-                });
-            });
+        document.getElementById("dataForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            sendData("add");
         });
 
-        function submitData(action) {
-            let formData = new FormData();
-            formData.append("id", document.getElementById("id").value);
-            formData.append("name", document.getElementById("name").value);
-            formData.append("age", document.getElementById("age").value);
-            formData.append("address", document.getElementById("address").value);
-            formData.append("action", action);
+        document.getElementById("updateBtn").addEventListener("click", function() {
+            sendData("update");
+        });
 
-            fetch("https://script.google.com/macros/s/AKfycbya6WRBNe9AdeTCd-TT6YejHPqULsjTXEc4oG_38KccfasO2Q845Ee_ifliZJF3KXt9/exec", { // Replace with your Web App URL
+        document.getElementById("deleteBtn").addEventListener("click", function() {
+            sendData("delete");
+        });
+
+        document.getElementById("searchBtn").addEventListener("click", function() {
+            sendData("search");
+        });
+
+        document.getElementById("name").addEventListener("input", function() {
+            fetchNames();
+        });
+
+        function fetchNames() {
+            fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=getNames")
+                .then(response => response.json())
+                .then(data => {
+                    let datalist = document.getElementById("nameSuggestions");
+                    datalist.innerHTML = "";
+                    data.names.forEach(name => {
+                        let option = document.createElement("option");
+                        option.value = name;
+                        datalist.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error fetching names:", error));
+        }
+
+        function sendData(action) {
+            let formData = new FormData(document.getElementById("dataForm"));
+            formData.append("action", action);
+            let statusMessage = document.getElementById("status");
+            statusMessage.textContent = "Processing...";
+
+            fetch("https://script.google.com/macros/s/AKfycbyF5ODilkaxHIOf_6uXANr5MUCUQsQ3viL53GeNAlxKwNm7v56f_HUl57BCzDwqBvvx/exec", {
                 method: "POST",
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById("status").textContent = data.message;
-                if (action === "add") {
+                statusMessage.textContent = data.message;
+                
+                if (action === "search" && data.result) {
+                    document.getElementById("id").value = data.result.id;
+                    document.getElementById("name").value = data.result.name;
+                    document.getElementById("age").value = data.result.age;
+                    document.getElementById("address").value = data.result.address;
+                }
+                if (action === "delete" || action === "update" || action === "add") {
                     document.getElementById("dataForm").reset();
-                    document.getElementById("id").focus(); // Reset focus to ID field
                 }
             })
             .catch(error => {
                 console.error("Error:", error);
-                document.getElementById("status").textContent = "Error submitting data";
+                statusMessage.textContent = "Error processing request. Please try again.";
             });
         }
     </script>
