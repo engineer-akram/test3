@@ -8,7 +8,7 @@
 </head>
 <body>
     <main class="container">
-        <h2>Submit Your Details</h2>
+        <h2>Manage Records</h2>
         <form id="dataForm">
             <label for="id">ID:</label>
             <input type="text" id="id" name="id" placeholder="Enter ID (or search by name)">
@@ -74,7 +74,7 @@
             let statusMessage = document.getElementById("status");
             statusMessage.textContent = "Processing...";
 
-            fetch("https://script.google.com/macros/s/AKfycbyF5ODilkaxHIOf_6uXANr5MUCUQsQ3viL53GeNAlxKwNm7v56f_HUl57BCzDwqBvvx/exec", {
+            fetch("https://script.google.com/macros/s/AKfycbxdT1PW6pnQaOp5FRZEXVb7DIYCXJncV398arbmtgHb2-9xtmybN8oPzwi5ur-KcK_i/exec", {
                 method: "POST",
                 body: formData
             })
@@ -87,6 +87,9 @@
                     document.getElementById("name").value = data.result.name;
                     document.getElementById("age").value = data.result.age;
                     document.getElementById("address").value = data.result.address;
+                }
+                if (action === "delete" || action === "update" || action === "add") {
+                    document.getElementById("dataForm").reset();
                 }
             })
             .catch(error => {
